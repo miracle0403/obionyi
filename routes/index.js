@@ -23,27 +23,7 @@ router.post('/upload', function(req, res, next) {
 		var form = new formidable.IncomingForm();
 		form.parse(req, function(err, fields, files) {
 			if (err) throw err;
-			var type = JSON.stringify(files.img.type);
-			var supported = {
-				jpeg: "image/jpeg",
-				png: "image/png",
-				jpg: "image/jpg"
-			}
-			var jpeg = JSON.stringify(supported.jpeg);
-			var jpg = JSON.stringify(supported.jpg);
-			var png = JSON.stringify(supported.png)
-			console.log (jpeg == type)
-			if(type === jpg || type === png || type === jpeg){
-				//get the size
-				var size = JSON.stringify(files.img.size);
-				
-				if (size > 3000000){
-					
-					var error = 'File size is too big try reducing...';
-					console.log(error);
-					res.render('upload', {title: 'Upload Failed', error: error});
-				}else{
-					
+			
 					/*var name = JSON.stringify(files.img.name);
 					var newpath = './public/images/samples/' + name;
 					var oldpath = JSON.stringify(files.img.path);
@@ -52,16 +32,45 @@ router.post('/upload', function(req, res, next) {
 						if (err) throw err;
 						res.render('/upload', {title: 'saved'});
 					});*/
+					var filed =  JSON.stringify(files.img);
+					var file  =  JSON.parse( filed );
+					var name  =  file.name;
+					console.log( file );
 					form.on('fileBegin', function(name, file) {
-						file.path = './public/images/samples/' + name;
-						
+						var newpath =  '/storage/emulated/0/obionyi/public/samples/' 
+						var oldpath  =  file.path;
+						var type  =  file.type;
+						var size  =  file.size;
+						var fs  =  require( 'fs' );
+						/*fs.rename(oldpath, newpath, function( err ){
+							if( err ) throw err;
+							console.log( 'file moved' );
+						});*/
+						//if the type is not supported.
+						var supported  =  {
+							png: 'image/png',
+							jpg: 'image/jpg',
+							jpeg: 'image/jpeg'
+						}
+						if( type  == supported.png || type == supported.jpg || type == supported.jpeg){
+							console.log( 'file is supported', typeof supported.jpeg, typeof type, supported.jpeg === type, supported.jpeg == type);
+							//check the size
+							if( size > 3000000 ){
+								console.log( 'file too big' )
+							}else{
+								console.log( 'file is normal' )
+							}
+						}else{
+							console.log( 'is not supported' );
+						}
 					});
-				}
+					form.emit( 'fileBegin', name, file );
+				/*
 			}else{
 				var error = 'This file is not supported. Please use either a jpg or png or jpeg file.';
 				console.log(error)
 				res.render('upload', {title: 'Upload Failed', error: error});
-			}
+			}*/
 		});
 	}
 });
