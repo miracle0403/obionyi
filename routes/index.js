@@ -5,13 +5,22 @@ var express = require('express');
 var router = express.Router();
 var ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn
 var util = require('util');
+var securePin = require('secure-pin');
 var fs = require('fs');
+var passport = require('passport');
+var db = require('../db.js'); 
+var bcrypt = require('bcrypt-nodejs');
+var path = require('path');
+//var nodemailer = require('../nodemailer/loginmail.js');
+
 /* GET home page. */
 router.get('/', function(req, res, next) {
   res.render('index', { title: 'IFEYSAMUEL VENTURES' });
 });
 
-router.get('/upload', ensureLoggedIn( '/login' ), function(req, res, next) {
+//ensureLoggedIn( '/login' ),
+//get upload
+router.get('/upload',  function(req, res, next) {
 	//get the category.
 	db.query('SELECT category FROM category', function(err, results, fields){
 		if(err) throw err;
@@ -84,11 +93,14 @@ router.post('/upload', function(req, res, next) {
 					var name  =  file.name;
 					console.log( file );
 					form.on('fileBegin', function(name, file) {
-						var newpath =  '/storage/emulated/0/obionyi/public/samples/' + name;
+						var newpath =  '/Users/STAIN/desktop/sites/obionyi/public/images/samples/' + file.name;
 						var oldpath  =  file.path;
 						var type  =  file.type;
 						var size  =  file.size;
-						var fs  =  require( 'fs' );
+						var oldfile  =  path.basename(oldpath);
+						//console.log(newfile + 'is the new file');
+						//change the file name
+						console.log(newpath);
 						//if the type is not supported.
 						var supported  =  {
 							png: 'image/png',
@@ -107,15 +119,19 @@ router.post('/upload', function(req, res, next) {
 									res.render('upload', {title: 'FILE UPLOAD FAILED', error: error});
 								});
 							}else{
+								
 								// move the file.
 								fs.rename(oldpath, newpath, function( err ){
 									if( err ) throw err;
 									console.log( 'file moved' );
-									//insert joor
-									db.query('INSERT INTO products (price, category, product_name, image, product_id, status) values (?, ?, ?, ?, ?, ?)', [price, category, product, newpath, product_id, 'instock'], function(err, results, fields){
-										if (err) throw err;
-										var success = 'Product added successfully';
-										res.render('upload', {title: 'FILE UPLOAD FAILED', success: success});
+									securePin.generatePin(10, function(pin){
+										//insert joor
+										var product_id = pin;
+										db.query('INSERT INTO products (price, category, product_name, image, product_id, status) values (?, ?, ?, ?, ?, ?)', [price, category, product, newpath, product_id, 'instock'], function(err, results, fields){
+											if (err) throw err;
+											var success = 'Product added successfully';
+											res.render('upload', {title: 'FILE UPLOAD SUCCESSFUL', success: success});
+										});
 									});
 								});
 							}
@@ -130,26 +146,40 @@ router.post('/upload', function(req, res, next) {
 	}
 });
 
+//post the register
+//var normal = require( '../functions/normal.js' );
+router.post('/register', function (req, res, next) {
+	req.checkBody('username', 'Username must be between 8 to 25 characters').len(8,25);
+	req.checkBody('fullname', 'Full Name must be between 8 to 25 characters').len(8,25);
+	req.checkBody('pass1', 'Password must be between 8 to 25 characters').len(8,100);
+	req.checkBody('pass2', 'Password confirmation must be between 8 to 100 characters').len(8,100);
+	req.checkBody('email', 'Email must be between 8 to 105 characters').len(8,105);
+	req.checkBody('email', 'Invalid Email').isEmail();
+	req.checkBody('code', 'Country Code must not be empty.').notEmpty();
+	req.checkBody('pass1', 'Password must match').equals(req.body.pass2);
+	req.checkBody('phone', 'Phone Number must be ten characters').len(10);
+  
+	var username = req.body.username;
+	var password = req.body.pass1;
+	var cpass = req.body.pass2;
+	var email = req.body.email;
+	var fullname = req.body.fullname;
+	var code = req.body.code;
+	var phone = req.body.phone;
+	var sponsor = req.body.sponsor;
 
-/*console.log('files', files);
-		files.map(File, function(){
-			console.log(File);
+	var errors = req.validationErrors();
+	if (errors) { 
+	
+		console.log(JSON.stringify(errors));
+  
+		res.render('register', { title: 'REGISTRATION FAILED', errors: errors, username: username, email: email, phone: phone, password: password, cpass: cpass, fullname: fullname, code: code, sponsor: sponsor});
+	}else{
+		db.query('SELECT username FROM user WHERE username = ?', [username], function(err, results, fields){
+          	if (err) throw err;
 		});
-		//what happens if file is not in jpg or png format
-		else{
-			console.log('nada')
-			res.render('upload', {title: 'nada'})
-		}*/
-/*if(type !== 'image/jpg' || type !== 'image/png' || type != 'image/jpeg'){
-			var error = 'File format is not supported. Use jpg or jpeg or png images';
-			console.log(error)
-			res.render('upload', { title: 'File Upload Failed', error: error });
-		}else{
-			//check the size i.e mb stuff
-			var permittedsize = form.maxFileSize = 200 * 1024 * 1024;
-			console.log(permittedsize)
-			res.render('upload', { title: 'Upload File' });
-		}*/
+	}
+});
 
 router.get('/404', function(req, res, next) {
   res.render('404', {title: 'PAGE NOT FOUND', message: 'Ooops  since you got lost somehow but i am here to catch you. see our quick links.'});

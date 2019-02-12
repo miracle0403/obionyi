@@ -1,4 +1,23 @@
-<form action = "/upload" enctype="multipart/form-data" method = "post">
-<input type = "file" name = "img"/>
-<input type = "submit">
-</form>
+{{> mainh}}
+{{> mainseo}}
+<form method ="POST" action ="/upload">
+	  <div class="container-fluid"> 
+  <div class="form-row">
+    <div class="form-group col-md-6">
+        <label for="username">username</label>
+    <input type="text" class="form-control" 
+id="username" name ="username" placeholder="Enter username" required />
+</div>
+<div class="form-group col-md-6">
+<label for="Password">Password</label>
+        <input type="password" class="form-control" 
+    id="Password" name ="password" placeholder="Password" required />
+    </div>
+    </div>
+    	<div class="form-group"> <button type="submit" class="btn 
+btn-primary">Submit</button> </form><br><br>
+<p>Forgot Password, Click <a href ="/passwordreset">here. </a>Don't have an account, <a href ="/register">register</a>.
+</p>
+	</div>
+    </div><hr>
+{{> mainf}}
