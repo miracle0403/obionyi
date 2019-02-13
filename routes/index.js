@@ -11,11 +11,76 @@ var passport = require('passport');
 var db = require('../db.js'); 
 var bcrypt = require('bcrypt-nodejs');
 var path = require('path');
-//var nodemailer = require('../nodemailer/loginmail.js');
+var url = require('url'); 
+
+var paginator = {};
+paginator.limit = 5; // Set your default limit here.
+paginator.defaultPage = 'index';
+
+var pages = function (req, res, next) {
+ 
+    let currentPage = parseInt(req.params.page) || 1;
+ 
+    let sql = "SELECT COUNT(product_id) AS total FROM products";
+    db.query(sql, function(err, result){
+        if (err) next(err);
+        
+        // We can do the queries with the paginator values.
+        // But this is useful when we don't have a paginator plugin.
+        res.locals.currentPage = currentPage;
+        res.locals.totalPages = Math.ceil(parseInt(result[0].total) / paginator.limit);
+        res.locals.totalPosts = result[0].total;
+ 
+        // Make the same variable accessible in the pagination object.
+        paginator.totalPages = res.locals.totalPages;
+        paginator.currentPage = req.params.page;
+ 
+        next();
+    });
+}
 
 /* GET home page. */
-router.get('/', function(req, res, next) {
-  res.render('index', { title: 'IFEYSAMUEL VENTURES' });
+router.get('/', pages,  function(req, res, next) {
+	let limit = paginator.limit;
+    let offset = res.locals.totalPosts - (paginator.limit * res.locals.currentPage);
+	let sql = "SELECT * FROM products ORDER BY product_id";
+	db.query(sql, [limit, offset], function(err, rows, results) {
+		if (err) next(err);
+		var products = results;
+		res.render('index', { 
+			product: products,
+			posts: rows,
+			paginator: paginator
+		});
+	});
+});
+
+router.get('/:page', pages, function(req, res, next) {
+ 
+    // Only render pages that do have posts.
+    if (res.locals.currentPage > res.locals.totalPages)
+        return res.redirect('/');
+ 
+    // If there are 100 posts. Page two will query post 90 to 81. Page three: 71 to 80.
+    let limit = paginator.limit;
+    let offset = res.locals.totalPosts - (paginator.limit * res.locals.currentPage);
+    
+    if (offset < 0) {
+        limit += offset; // Algebraic double negative
+        offset = 0;
+    }
+ 
+    let sql =  "SELECT * FROM products ORDER BY product_id";
+ 
+    db.query(sql, [limit, offset], function(err, rows) {
+        if (err) next(err);
+        var product = results;
+		res.render('index', { 
+			product: products,
+			posts: rows,
+			paginator: paginator
+		});
+    });
 });
 
 //ensureLoggedIn( '/login' ),
@@ -25,18 +90,15 @@ router.get('/admin',  function(req, res, next) {
 	db.query('SELECT category FROM category', function(err, results, fields){
 		if(err) throw err;
 		var category = results;
-		res.render('upload', { title: 'Upload File', category: category });
+		
 	});
 });
 
+
 //get category
-router.get('/admin',  function(req, res, next) {
-	//get the category.
-	db.query('SELECT category FROM category', function(err, results, fields){
-		if(err) throw err;
-		var category = results;
-		res.render('upload', { title: 'Upload File', category: category });
-	});
+router.get('/:category',  function(req, res, next) {
+	var category = req.params.category;
+	res.render('upload', { title: 'Upload File', category: category });
 });
 
 
@@ -79,10 +141,11 @@ passport.deserializeUser(function(user_id, done){
 //post add new category never existed.
 router.post('/newcat', function(req, res, next) {
 	var category = req.body.category;
-	db.query('CALL newcategory (?)', [category], function(err, results, fields){
+	db.query('CALL newcat (?)', [category], function(err, results, fields){
 		if (err) throw err;
-		var child = 'Category added.';
-		res.render('index', { title: 'IFEYSAMUEL VENTURES', child: success});
+		var parent = 'Category added.';
+		var success = 'added successfully';
+		res.render('status', { title: 'IFEYSAMUEL VENTURES', parent: success});
 	});
 });
 
@@ -96,7 +159,7 @@ router.post('/login', passport.authenticate('local', {
 //post add category 
 router.post('/addcategory', function(req, res, next) {
 	var category = req.body.category;
-	var parent = req.body.parent;
+	var child = req.body.parent;
 	db.query('CALL addcategory (?, ?)', [parent, category], function(err, results, fields){
 		if (err) throw err;
 		var success = 'Category added.';

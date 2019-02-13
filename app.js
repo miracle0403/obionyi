@@ -6,6 +6,7 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var env  = require('dotenv').config();
 var hbs = require('hbs');
+//const path = require('path');
 var fs = require('fs');
 
 //upload requirements
@@ -31,10 +32,12 @@ var usersRouter = require('./routes/users');
 
 var app = express();
 
+
 // view engine setup
+
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'hbs');
-/*
+
 //register partials
 var dashboardhTemplate = fs.readFileSync(__dirname + '/views/spageh.hbs', 'utf8');
 hbs.registerPartial('spageh', dashboardhTemplate); 
@@ -53,7 +56,7 @@ hbs.registerPartial('mainf', mainfTemplate);
 
 var mainseoTemplate = fs.readFileSync(__dirname + '/views/mainseo.hbs', 'utf8');
 hbs.registerPartial('mainseo', mainfTemplate); 
-*/
+
 
 //middlewares.
 app.use(logger('dev'));
