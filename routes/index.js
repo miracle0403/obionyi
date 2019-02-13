@@ -20,7 +20,17 @@ router.get('/', function(req, res, next) {
 
 //ensureLoggedIn( '/login' ),
 //get upload
-router.get('/upload',  function(req, res, next) {
+router.get('/admin',  function(req, res, next) {
+	//get the category.
+	db.query('SELECT category FROM category', function(err, results, fields){
+		if(err) throw err;
+		var category = results;
+		res.render('upload', { title: 'Upload File', category: category });
+	});
+});
+
+//get category
+router.get('/admin',  function(req, res, next) {
 	//get the category.
 	db.query('SELECT category FROM category', function(err, results, fields){
 		if(err) throw err;
@@ -50,6 +60,21 @@ router.get('/register', function(req, res, next) {
     res.render('register',  { title: 'REGISTRATION'});
 });
 
+//get logout
+router.get('/logout', function(req, res, next) {
+  req.logout();
+  req.session.destroy();
+  res.redirect('/');
+});
+
+//Passport login
+passport.serializeUser(function(user_id, done){
+  done(null, user_id)
+});
+        
+passport.deserializeUser(function(user_id, done){
+  done(null, user_id)
+});
 
 //post add new category never existed.
 router.post('/newcat', function(req, res, next) {
@@ -64,7 +89,7 @@ router.post('/newcat', function(req, res, next) {
 //post log in
 router.post('/login', passport.authenticate('local', {
   failureRedirect: '/login',
-  successReturnToOrRedirect: '/',
+  successReturnToOrRedirect: '/admin',
   failureFlash: true
 }));
 
@@ -82,6 +107,9 @@ router.post('/addcategory', function(req, res, next) {
 
 router.post('/upload', function(req, res, next) {
 	var img = req.body.img;
+	var category = req.body.category;
+	var price = req.body.price;
+	var category = req.body.description;
 	//var category = req.body.category;
 	if (req.url == '/upload' && req.method.toLowerCase() == 'post') {
 		// parse a file upload
@@ -177,6 +205,30 @@ router.post('/register', function (req, res, next) {
 	}else{
 		db.query('SELECT username FROM user WHERE username = ?', [username], function(err, results, fields){
           	if (err) throw err;
+			
+          	if(results.length===1){
+          		var error = "Sorry, this username is taken";
+				console.log(error);
+				res.render('register', {title: "REGISTRATION FAILED", error: error, username: username, email: email, phone: phone, password: password, cpass: cpass, fullname: fullname, code: code,  sponsor: sponsor});
+          	}else{
+				//check the email
+				db.query('SELECT email FROM user WHERE email = ?', [email], function(err, results, fields){
+          			if (err) throw err;
+          			if(results.length===1){
+          				var error = "Sorry, this email is taken";
+            			console.log(error);
+						res.render('register', {title: "REGISTRATION FAILED", error: error, username: username, email: email, phone: phone, password: password, cpass: cpass, fullname: fullname, code: code,  sponsor: sponsor});
+            		}else{
+						bcrypt.hash(password, saltRounds, null, function(err, hash){
+							db.query( 'INSERT INTO user (full_name, phone, username, email, code, password, verification)(?, ?, ?, ?, ?, ?, ?)', [ fullname, phone, username, email, code, hash, 'no'], function(err, result, fields){
+								if (err) throw err;
+								var success = 'Successful registration';
+								res.render('register', {title: 'REGISTRATION SUCCESSFUL!', success: success});
+							});
+						});
+					}
+				});
+			}
 		});
 	}
 });

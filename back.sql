@@ -12,4 +12,5 @@ CREATE TABLE `products` (
 	`discount` INT(11) NOT NULL
 );
 
+CREATE TABLE `user`( user_id INT( 11 ) PRIMARY KEY AUTO_INCREMENT NOT NULL,  username varchar( 255 ) UNIQUE NOT NULL, full_name varchar ( 255 ) NOT NULL, email varchar ( 255 ) UNIQUE NOT NULL, phone VARCHAR(255) NOT NULL, code INT( 11 ) NOT NULL, password varchar( 255 ) NOT NULL, date_registered DATETIME  DEFAULT CURRENT_TIMESTAMP)	;
 

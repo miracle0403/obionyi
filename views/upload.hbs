@@ -1,23 +1,103 @@
 {{> mainh}}
 {{> mainseo}}
-<form method ="POST" action ="/upload">
-	  <div class="container-fluid"> 
-  <div class="form-row">
-    <div class="form-group col-md-6">
-        <label for="username">username</label>
-    <input type="text" class="form-control" 
-id="username" name ="username" placeholder="Enter username" required />
-</div>
-<div class="form-group col-md-6">
-<label for="Password">Password</label>
-        <input type="password" class="form-control" 
-    id="Password" name ="password" placeholder="Password" required />
-    </div>
-    </div>
-    	<div class="form-group"> <button type="submit" class="btn 
-btn-primary">Submit</button> </form><br><br>
-<p>Forgot Password, Click <a href ="/passwordreset">here. </a>Don't have an account, <a href ="/register">register</a>.
-</p>
-	</div>
-    </div><hr>
+	<h3>ADD NEW PARENT CATEGORY</h3>
+	<form method ="POST" action ="/newcat">
+		<div class="container-fluid"> 	
+			<div class="form-group">
+				<label for="category">Category</label>
+				<input type="text" class="form-control" id="newcat" name ="category" placeholder="Enter new category here" required />
+			</div>
+			<div class="form-group">
+				<button type="submit" class="btn btn-primary">Submit</button><br><br>
+			</div>
+		</div><hr>
+	</form>
+	<br>
+	<br>
+	<h3>ADD NEW CHILD CATEGORY</h3>
+	<form method ="POST" action ="/addcategory">
+		<div class="container-fluid"> 	
+			<div class="form-group">
+				<label for="category">Parent Category</label>
+				<select name = "parent">
+					<option></option>
+					{{#if parent}}
+						<option>{{parent}}</option>
+					{{/if}}
+				</select>
+			</div>
+			<div class="form-group">
+				<label for="category">Child Category</label>
+				<input type="text" class="form-control" id="newcat" name ="category" placeholder="Enter category here" required />
+			</div>
+			<div class="form-group">
+				<button type="submit" class="btn btn-primary">Submit</button><br><br>
+			</div>
+		</div><hr>
+	</form>
+	<br>
+	<br>
+	<h3>ADD NEW PRODUCT</h3>
+	<form method ="POST" action ="/upload">
+		<div class="container-fluid"> 	
+			<div class="form-group">
+				<label for="category">Category</label>
+				<select name = "parent">
+					<option></option>
+					{{#if parent}}
+						<option>{{parent}}</option>
+					{{/if}}
+				</select>
+			</div>
+			<div class="form-group">
+				<label for="product">Product</label>
+				<input type="text" class="form-control" id="product" name ="product" placeholder="Enter product here" required />
+			</div>
+			<div class="form-group">
+				<label for="img">Price</label>
+				<input type="text" class="form-control" id="Picture" name ="price" value="Contact for price" required />
+			</div>
+			<div class="form-group">
+				<label for="img">Product Image</label>
+				<input type="file" class="form-control" id="Picture" name ="img" placeholder="Click here" required />
+			</div>
+			<div class="form-group">
+				<label for="img">Product Description</label>
+				<textarea class="form-control" id="description" name ="description" placeholder="Enter description here"></textarea>
+			</div>
+			<div class="form-group">
+				<button type="submit" class="btn btn-primary">Submit</button><br><br>
+			</div>
+		</div><hr>
+		</form>
+		<br>
+		<br>
+		<h3>UPDATE PRODUCT STATUS</h3>
+	<form method ="POST" action ="/newcat">
+		<div class="container-fluid"> 	
+			<div class="form-group">
+				<label for="product">Product_id</label>
+				<input type="number" class="form-control" id="product_id" name ="product_id" placeholder="Enter product_id" required />
+			</div>
+			<div class="form-group">
+				<button type="submit" class="btn btn-primary">Submit</button><br><br>
+			</div>
+		</div><hr>
+	</form>
+	
+	<br>
+	<br>
+	<h3>SEARCH PRODUCT</h3>
+	<form method ="POST" action ="/searchproduct">
+		<div class="container-fluid"> 	
+			<div class="form-group">
+				<label for="product">Product_id</label>
+				<input type="number" class="form-control" id="product_id" name ="product_id" placeholder="Enter product_id" required />
+			</div>
+			<div class="form-group">
+				<button type="submit" class="btn btn-primary">Submit</button><br><br>
+			</div>
+		</div><hr>	
+	
+	</form>
 {{> mainf}}
