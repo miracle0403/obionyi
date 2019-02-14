@@ -13,75 +13,33 @@ var bcrypt = require('bcrypt-nodejs');
 var path = require('path');
 var url = require('url'); 
 
-var paginator = {};
-paginator.limit = 5; // Set your default limit here.
-paginator.defaultPage = 'index';
 
-var pages = function (req, res, next) {
- 
-    let currentPage = parseInt(req.params.page) || 1;
- 
-    let sql = "SELECT COUNT(product_id) AS total FROM products";
-    db.query(sql, function(err, result){
-        if (err) next(err);
-        
-        // We can do the queries with the paginator values.
-        // But this is useful when we don't have a paginator plugin.
-        res.locals.currentPage = currentPage;
-        res.locals.totalPages = Math.ceil(parseInt(result[0].total) / paginator.limit);
-        res.locals.totalPosts = result[0].total;
- 
-        // Make the same variable accessible in the pagination object.
-        paginator.totalPages = res.locals.totalPages;
-        paginator.currentPage = req.params.page;
- 
-        next();
-    });
-}
+//get home 
+router.get('/',  function(req, res, next) {
+	res.redirect('/pages/1');
+});
 
 /* GET home page. */
-router.get('/', pages,  function(req, res, next) {
-	let limit = paginator.limit;
-    let offset = res.locals.totalPosts - (paginator.limit * res.locals.currentPage);
-	let sql = "SELECT * FROM products ORDER BY product_id";
-	db.query(sql, [limit, offset], function(err, rows, results) {
-		if (err) next(err);
-		var products = results;
-		res.render('index', { 
-			product: products,
-			posts: rows,
-			paginator: paginator
+router.get('/pages/:page',  function(req, res, next) {
+	var currentPage = req.params.page;
+	db.query('SELECT COUNT(product_id) AS total FROM products', function(err, results, fields){
+        if (err) next(err);
+		var TotalNoOfROWS = results[0].total;
+		var sql = "SELECT * FROM products ORDER BY product_id";
+		db.query(sql, function(err, results, fields) {
+			if (err) next(err);
+			var products = results;
+			res.render('index', { 
+				products: products,
+				pagination: { 
+					page: currentPage, limit:5 ,totalRows: TotalNoOfROWS 
+				}
+			});
 		});
 	});
 });
 
-router.get('/:page', pages, function(req, res, next) {
- 
-    // Only render pages that do have posts.
-    if (res.locals.currentPage > res.locals.totalPages)
-        return res.redirect('/');
- 
-    // If there are 100 posts. Page two will query post 90 to 81. Page three: 71 to 80.
-    let limit = paginator.limit;
-    let offset = res.locals.totalPosts - (paginator.limit * res.locals.currentPage);
-    
-    if (offset < 0) {
-        limit += offset; // Algebraic double negative
-        offset = 0;
-    }
- 
-    let sql =  "SELECT * FROM products ORDER BY product_id";
- 
-    db.query(sql, [limit, offset], function(err, rows) {
-        if (err) next(err);
-        var product = results;
-		res.render('index', { 
-			product: products,
-			posts: rows,
-			paginator: paginator
-		});
-    });
-});
+
 
 //ensureLoggedIn( '/login' ),
 //get upload
@@ -90,15 +48,8 @@ router.get('/admin',  function(req, res, next) {
 	db.query('SELECT category FROM category', function(err, results, fields){
 		if(err) throw err;
 		var category = results;
-		
+		res.render('upload', {title: 'ADMIN CORNER', category: category});
 	});
-});
-
-
-//get category
-router.get('/:category',  function(req, res, next) {
-	var category = req.params.category;
-	res.render('upload', { title: 'Upload File', category: category });
 });
 
 

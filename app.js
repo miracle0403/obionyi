@@ -4,8 +4,8 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-var env  = require('dotenv').config();
-var hbs = require('hbs');
+//var env  = require('dotenv').config();
+var hbs = require('express-handlebars');
 //const path = require('path');
 var fs = require('fs');
 
@@ -26,36 +26,25 @@ var session = require('express-session');
 var MySQLStore = require ('express-mysql-session')(session);
 var flash = require('express-flash-messages');
 var db = require('./db.js'); 
-
+var hbs  = require('hbs');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
-
+var paginate = require('express-handlebars-paginate');
 var app = express();
 
-
-// view engine setup
-
+ //view set up
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'hbs');
 
+//create helper
+hbs.registerHelper('paginate', paginate);
+
+
+
 //register partials
-var dashboardhTemplate = fs.readFileSync(__dirname + '/views/spageh.hbs', 'utf8');
-hbs.registerPartial('spageh', dashboardhTemplate); 
-
-var dashboardfTemplate = fs.readFileSync(__dirname + '/views/spagef.hbs', 'utf8');
-hbs.registerPartial('spagef', dashboardfTemplate); 
-
-var navTemplate = fs.readFileSync(__dirname + '/views/nav.hbs', 'utf8');
-hbs.registerPartial('nav', navTemplate); 
-
-var mainhTemplate = fs.readFileSync(__dirname + '/views/mainh.hbs', 'utf8');
-hbs.registerPartial('mainh', mainhTemplate); 
-
-var mainfTemplate = fs.readFileSync(__dirname + '/views/mainf.hbs', 'utf8');
-hbs.registerPartial('mainf', mainfTemplate); 
 
 var mainseoTemplate = fs.readFileSync(__dirname + '/views/mainseo.hbs', 'utf8');
-hbs.registerPartial('mainseo', mainfTemplate); 
+hbs.registerPartial('mainseo', mainseoTemplate); 
 
 
 //middlewares.

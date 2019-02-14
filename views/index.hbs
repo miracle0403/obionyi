@@ -1,5 +1,18 @@
-<div class = "container-fluid">
+<section class="text-center">
+<br><br>
+    <div class="container-fluid">
+      <h2 class = "h2">
+  ABOUT US</h2>
+  <p><small class="text-muted">what we do</small></p>
+      <p class="lead text-muted">Something nice to tell people what you do.</p>
+      <p>
+        <a href="#" class="btn btn-primary my-2">Call Now</a>
+        <a href="#" class="btn btn-secondary my-2">WhatsApp now</a>
+      </p>
+    </div>
+  </section>
 <div class="container marketing">
+
 
     <!-- Three columns of text below the carousel -->
     <div class="row">
@@ -16,14 +29,13 @@
 </div>
 <br>
 <br>
-	<nav aria-label="Page navigation example">
-  <ul class="pagination">
-    <li class="page-item"><a class="page-link" href="#">Previous</a></li>
-    <li class="page-item"><a class="page-link" href="#">1</a></li>
-    <li class="page-item"><a class="page-link" href="#">2</a></li>
-    <li class="page-item"><a class="page-link" href="#">3</a></li>
-    <li class="page-item"><a class="page-link" href="#">Next</a></li>
-  </ul>
-</nav>
+	{{#if paginator}}
+  {{paginate pagination limit="7"}}
+      
+{{/if }}
+      
+  
+  
+  
 <div>
 

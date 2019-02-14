@@ -22,3 +22,5 @@ CREATE PROCEDURE `newcat`(category VARCHAR( 255 ))
 	INSERT INTO category(category, rgt, lft) VALUES(category, 1, 2);
 	END//
 DELIMITER ;
+
+INSERT INTO `category` (`cat_id`, `category`, `lft`, `rgt`) VALUES ('1', 'fashion', '1', '2');
