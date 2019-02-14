@@ -10,6 +10,7 @@ var fs = require('fs');
 var passport = require('passport');
 var db = require('../db.js'); 
 var bcrypt = require('bcrypt-nodejs');
+var securePin = require('secure-pin');
 var path = require('path');
 var url = require('url'); 
 var math = require( 'mathjs' );
@@ -107,7 +108,7 @@ router.post('/newcat', function(req, res, next) {
 	var category = req.body.category;
 	db.query( 'SELECT category_name FROM category WHERE category_name  = ?', [category], function ( err, results, fields ){
 	console.log( results )
-		if ( results.length === 0 ){
+		if ( results.length > 0 ){
 			var error = 'This category exists already';
 			res.render( 'upload', {title: 'ADD CATEGORY FAILED', parenterror: error});
 		}else{
@@ -151,7 +152,6 @@ router.post('/addcategory',  function(req, res, next) {
 
 router.post('/upload', function(req, res, next) {
 	var img = req.body.img;
-	var pic = req.body.picture;
 	var category = req.body.category;
 	var price = req.body.price;
 	var description = req.body.description;
@@ -160,7 +160,7 @@ router.post('/upload', function(req, res, next) {
 	if (req.url == '/upload' && req.method.toLowerCase() == 'post') {
 		// parse a file upload
 		var form = new formidable.IncomingForm();
-		form.uploadDir = '/storage/emulated/0/obionyi/public/images/samples';
+		form.uploadDir = '/Users/STAIN/desktop/sites//obionyi/public/images/samples';
 		form.maxFileSize = 2 * 1024 * 1024;
 		form.parse(req, function(err, fields, files) {
 		var getfiles = JSON.stringify( files );
@@ -168,10 +168,23 @@ router.post('/upload', function(req, res, next) {
 		var oldpath = file.path;
 		var name = file.name;
 		form.keepExtensions = true;
-		var newpath = '/storage/emulated/0/obionyi/images/samples/' + file.name;
+		var newpath = '/Users/STAIN/desktop/sites/obionyi/images/samples/' + file.name;
 		form.on('fileBegin', function( name, file){
 			//rename the file
+			fs.rename(oldpath, newpath, function(err){
+				if (err) throw err;
+				console.log('file renamed');
+			});
+			//secure pin for code
+			securePin.generatePin(10, function(pin){
+			//save in the database.
+				db.query('INSERT INTO products (img,category_name, price, product_|id, description, product_name, status) VALUES (?, ?, ?, ?, ?, ?)', [img, category, price, pin, description, product, 'in stock'], function(err,results, fields){
+					if (err)  throw err;
+					res.render('upload', {title: 'ADMIN CORNER', uploadsuccess: 'file uoladed'});
+				});
+			});
 		});
+		file.emit('fileBegin', name, file);
     });
 	}
 });

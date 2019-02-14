@@ -8,6 +8,11 @@
 <div class = "row">
 <div class = "col-md-6">
 <h5 class = "h5"><b>ADD NEW PARENT CATEGORY</b></h5>
+{{#if parenterror}}
+<div class = "alert alert-danger">
+{{parenterror}}
+</div>
+{{/if}}
 	<form method ="POST"  action ="/newcat">
 		<div class="container-fluid"> 	
 			<div class="form-group">
@@ -71,6 +76,9 @@
  <div class = "container text-white bg bg-danger">
  <hr>
 	<h3 class = "h3"><b>ADD NEW PRODUCT<b></h3><hr>
+	{{#if uploadsuccess}}
+	<div class = "alert alert-success">
+	{{/if}}
 	</div>
 	<form method ="POST" id = "uploadproduct" enctype="multipart/form-data" action ="/upload">
 		<div class="container-fluid"> 	

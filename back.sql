@@ -16,15 +16,15 @@ CREATE TABLE `user`( user_id INT( 11 ) PRIMARY KEY AUTO_INCREMENT NOT NULL,  use
 
 
 DELIMITER //
-CREATE PROCEDURE `newcat`(category VARCHAR( 255 ))
+CREATE PROCEDURE `newcat`(category_name VARCHAR( 255 ))
 	BEGIN
 	UPDATE category SET rgt = rgt + 2;
 	UPDATE category SET lft = lft + 2;
-	INSERT INTO category(category_name,  lft, rgt) VALUES(category, 1, 2);
+	INSERT INTO category(category_name,  lft, rgt) VALUES(category_name, 1, 2);
 	END//
 DELIMITER ;
 
-INSERT INTO `category` (`cat_id`, `category`, `lft`, `rgt`) VALUES ('1', 'fashion', '1', '2');
+INSERT INTO `category` (`cat_id`, `category_name`, `lft`, `rgt`) VALUES ('1', 'fashion', '1', '2');
 
 CREATE TABLE `category` (
 	`cat_id` INT(11) PRIMARY KEY AUTO_INCREMENT NOT NULL,
