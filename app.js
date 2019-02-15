@@ -98,6 +98,7 @@ passport.use(new localStrategy(function(username, password, done){
 	db.query('SELECT user_id, email, password FROM user WHERE username = ?', [username], function (err, results, fields){
 		if (err) {done(err)};
 		if (results.length === 0){
+			console.log('false usename')
 			done(null, false, {
 				message: 'Invalid Username'
 			});
@@ -106,8 +107,10 @@ passport.use(new localStrategy(function(username, password, done){
 			const hash = results[0].password.toString();
 			bcrypt.compare(password, hash, function(err, response){
 				if (response === true){
+					console.log('good details')
 					return done(null, {user_id: results[0].user_id});
 				}else{
+					console.log('false password')
 					return done(null, false,{
 						message:'Invalid Password'
 					});

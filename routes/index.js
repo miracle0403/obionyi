@@ -15,17 +15,74 @@ var path = require('path');
 var url = require('url'); 
 var math = require( 'mathjs' );
 var formevents = require( '../functions/forms.js' );
-//var routeValidator = require( 'express-route-validator' );
 
+function rounds( err, results ){ 
+	if ( err ) throw err;
+}
+const saltRounds = bcrypt.genSalt( 10, rounds);
+
+
+//adminfunction
+function admin(x, y, j){
+	y.query('SELECT user FROM admin WHERE user = ?', [x], function(err, results, fields){
+		if(err) throw err;
+		if(results.length === 0){
+			j.redirect('/404');
+		}
+	});
+}
 
 //get home 
 router.get('/',  function(req, res, next) {
 	res.redirect('/page=1');
 });
 
+//product 
+router.get('/category=:category/product=:product',  function(req, res, next) {
+	var product = req.params.product;
+	var category = req.params.category;
+	db.query( 'SELECT * FROM products WHERE product_name = ? and category_name = ?',  [product, category], function(err, results, fields){
+		if( err ) throw err;
+		var product = results[0];
+		res.render('preoduct', {title: product.product_name, product: product});
+	});
+});
+
+//get category
+router.get('/category=:category/page=:page',  function(req, res, next) {
+	var limit  =  12;
+	var page = req.params.page;
+	var category = req.params.category;
+	db.query( 'SELECT COUNT( product_id) AS total FROM products WHERE status  = ? and category_name = ?',  ['in stock', category], function(err, results, fields){
+		if( err ) throw err;
+		var totalrows = results[0].total;
+		var pages = math.ceil( totalrows / limit ); 
+		if( pages === 1 ){
+			var offset = 0;
+			var sql = 'SELECT * FROM products WHERE status  =  ? and category_name = ? LIMIT ?, ?';
+			var details =  ['in stock', category, offset, limit];
+			db.query(sql, details, function ( err, results, fields ){
+				if( err ) throw err;
+				var products = results;
+				//var links = ['/pages/1'];
+				res.render( 'category', {title: 'ALL' + category, products: products, pagination: { page: page, pageCount: pages }});
+			});
+		}else{
+			var offset = ( page * limit ) - limit;
+			var sql = 'SELECT * FROM products WHERE status  =  ? and category_name = ? LIMIT ?, ?';
+			var details =  ['in stock', category, offset, limit];
+			db.query(sql, details, function ( err, results, fields ){
+				if( err ) throw err;
+				var products = results;
+				res.render( 'index', {title: 'ALL' + category, products: products, pagination: { page: page, pageCount: pages }});
+			});
+		}
+	});
+});
+
 /* GET home page. */
 router.get('/page=:page', function ( req, res, next ){
-	var limit  =  1;
+	var limit  =  12;
 	var page = req.params.page;
 	db.query( 'SELECT COUNT( product_id) AS total FROM products WHERE status  = ?',  ['in stock'], function(err, results, fields){
 		if( err ) throw err;
@@ -59,6 +116,8 @@ router.get('/page=:page', function ( req, res, next ){
 //get upload
 router.get('/admin', ensureLoggedIn('/login'), function(req, res, next) {
 	//get the category.
+	var currentUser = req.session.passport.user.user_id;
+	admin(currentUser, db, res);
 	db.query('SELECT category_name FROM category', function(err, results, fields){
 		if(err) throw err;
 		var category = results;
@@ -151,6 +210,63 @@ router.post('/login', passport.authenticate('local', {
   failureFlash: true
 }));
 
+//add new admin
+router.post('/addadmin', function (req, res, next) {
+	var user = req.body.user;
+	db.query('SELECT user_id, username FROM user WHERE user_id = ?', [user], function(err, results, fields){
+		if( err ) throw err;
+		if ( results.length === 0){
+			var error = 'Sorry this user does not exist.';
+			res.render('upload', {adderror: error });
+		}
+		else{
+			db.query('SELECT user FROM admin WHERE user = ?', [user], function(err, results, fields){
+				if( err ) throw err;
+				if( results.length === 0 ){
+					db.query('INSERT INTO admin ( user ) values( ? )', [user], function(err, results, fields){
+						if( err ) throw err;
+						var success = 'New Admin Added Successfully!';
+						res.render('upload', {addsuccess: success });
+					});
+				}
+				if( results.length > 0 ){
+					var error = 'This user is already an Admin';
+					res.render('upload', {adderror: error });
+				} 
+			});
+		}
+	});
+});
+
+
+//delete admin
+router.post('/deladmin', function (req, res, next) {
+	var user = req.body.user;
+	db.query('SELECT user_id, username FROM user WHERE user_id = ?', [user], function(err, results, fields){
+		if( err ) throw err;
+		if ( results.length === 0){
+			var error = 'Sorry this user does not exist.';
+			res.render('upload', {adminerror: error });
+		}
+		else{
+			db.query('SELECT user FROM admin WHERE user = ?', [user], function(err, results, fields){
+				if( err ) throw err;
+				if( results.length === 0 ){
+					var error = 'Sorry this admin does not exist.';
+					res.render('upload', {adminerror: error });
+				}
+				else {
+					db.query('DELETE FROM admin WHERE user = ?', [user], function(err, results, fields){
+						if( err ) throw err;
+						var success = 'Admin deleted successfully!'
+						res.render('upload', {adminsuccess: success });
+					});
+				}
+			});
+		}
+	});
+});
+
 //post add category 
 router.post('/addcategory',  function(req, res, next) {
 	var category = req.body.category;
@@ -214,6 +330,17 @@ router.post('/upload', function(req, res, next) {
 	}
 });
 
+
+//Passport login
+passport.serializeUser(function(user_id, done){
+  done(null, user_id)
+});
+        
+passport.deserializeUser(function(user_id, done){
+  done(null, user_id)
+});
+
+
 //post the register
 //var normal = require( '../functions/normal.js' );
 router.post('/register', function (req, res, next) {
@@ -234,7 +361,6 @@ router.post('/register', function (req, res, next) {
 	var fullname = req.body.fullname;
 	var code = req.body.code;
 	var phone = req.body.phone;
-	var sponsor = req.body.sponsor;
 
 	var errors = req.validationErrors();
 	if (errors) { 
@@ -260,7 +386,7 @@ router.post('/register', function (req, res, next) {
 						res.render('register', {title: "REGISTRATION FAILED", error: error, username: username, email: email, phone: phone, password: password, cpass: cpass, fullname: fullname, code: code,  sponsor: sponsor});
             		}else{
 						bcrypt.hash(password, saltRounds, null, function(err, hash){
-							db.query( 'INSERT INTO user (full_name, phone, username, email, code, password, verification)(?, ?, ?, ?, ?, ?, ?)', [ fullname, phone, username, email, code, hash, 'no'], function(err, result, fields){
+							db.query( 'INSERT INTO user (full_name, phone, username, email, code, password) VALUES(?,  ?, ?, ?, ?, ?)', [ fullname, phone, username, email, code, hash], function(err, result, fields){
 								if (err) throw err;
 								var success = 'Successful registration';
 								res.render('register', {title: 'REGISTRATION SUCCESSFUL!', success: success});
