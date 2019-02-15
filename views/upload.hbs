@@ -13,6 +13,11 @@
 {{parenterror}}
 </div>
 {{/if}}
+{{#if parent}}
+<div class = "alert alert-success">
+{{parent}}
+</div>
+{{/if}}
 	<form method ="POST"  action ="/newcat">
 		<div class="container-fluid"> 	
 			<div class="form-group">
@@ -29,6 +34,16 @@
 <div></div>
 <div class = "col-md-6">
 <h5 class = "h5"><b>ADD NEW CHILD CATEGORY</b></h5>
+{{#if childerror}}
+<div class = "alert alert-danger">
+{{childerror}}
+</div>
+{{/if}}
+{{#if childsuccess}}
+<div class = "alert alert-success">
+{{childsuccess}}
+</div>
+{{/if}}
 <form method ="POST" action ="/addcategory">
 		<div class="container-fluid">
 		<div class = "row">
@@ -78,15 +93,17 @@
 	<h3 class = "h3"><b>ADD NEW PRODUCT<b></h3><hr>
 	{{#if uploadsuccess}}
 	<div class = "alert alert-success">
+	{{uploadsuccess}}
+	</div>
 	{{/if}}
 	</div>
-	<form method ="POST" id = "uploadproduct" enctype="multipart/form-data" action ="/upload">
+	<!---->
+	<form method ="POST" enctype="multipart/form-data" id = "formupload"  action ="/upload">
 		<div class="container-fluid"> 	
 		<div class = "form-row">
 			<div class="form-group col-md-6">
 				<label for="category">Category</label>
 				<select class = "form-control" name = "category">
-					<option></option>
 					{{#if category}}
 					{{#each category}}
 						<option>{{category_name}}</option>
@@ -132,14 +149,29 @@
 		<hr>
 		<h3><b>UPDATE PRODUCT STATUS</b></h3><hr>
 		</div>
+		{{#if statussuccess}}
+		<div id = "stats" class = " container alert alert-success">
+		{{statussuccess}}
+		</div>
+		{{/if}}
 		<form method ="POST" action ="/status">
-		<div class="container-fluid"> 	
-			<div class="form-group">
-				<label for="product">Product_id</label>
-				<input type="number" class="form-control" id="product_id" name ="product_id" placeholder="Enter product_id" required />
+		<div class="container-fluid">
+		<div class = "form-row">
+			<div class="form-group col-md-6">
+				<label for="product">Id Number</label>
+				<input type="number" class="form-control" id="product_id" name ="id" placeholder="Enter product_id" required />
+			</div>
+			<div class="form-group col-md-6">
+			<label for="status">Status</label>
+				<select class = "form-control" name = "status">
+					
+					<option>In stock</option>
+					<option>Out of stock</option>
+				</select>
+			</div>
 			</div>
 			<div class="form-group">
-				<button type="submit" class="btn btn-secondary">Submit</button>
+				<button id = "update" type="submit" class="btn btn-secondary">Submit</button>
 				</div>
 		</div>
 	</form>
@@ -150,7 +182,17 @@
 		<hr>
 		<h3 class = "h3"><b>SEARCH PRODUCT</b></h3><hr>
 		</div>
-		
+		<div class = "container">
+	{{#if searchresults}}
+	{{#each searchresults}}
+	Product name: {{product_name}}<br>
+	Product Id: {{product_id}}<br>
+	ID Number: {{id}}<br>
+	Status: {{status}}<br>
+	Price: {{price}}<br>
+	{{/each}}
+	{{/if}}
+	</div>
 	<form method ="POST" action ="/searchproduct">
 		<div class="container-fluid"> 	
 			<div class="form-group">
@@ -162,7 +204,7 @@
 			</div>
 		</div>	
 	
-	</form>
+	
 		</div>
 		</div>
 			

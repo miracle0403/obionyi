@@ -57,7 +57,7 @@ router.get('/page=:page', function ( req, res, next ){
 
 //ensureLoggedIn( '/login' ),
 //get upload
-router.get('/admin',  function(req, res, next) {
+router.get('/admin', ensureLoggedIn('/login'), function(req, res, next) {
 	//get the category.
 	db.query('SELECT category_name FROM category', function(err, results, fields){
 		if(err) throw err;
@@ -103,6 +103,28 @@ passport.deserializeUser(function(user_id, done){
   done(null, user_id)
 });
 
+//post add status.
+router.post('/status', function(req, res, next) {
+	var status = req.body.status;
+	var id = req.body.id;
+	db.query( 'UPDATE products SET status  = ? WHERE id = ?', [status, id], function ( err, results, fields ){
+		if(err) throw err;
+		res.render('upload', {title: 'ADMIN CORNER', statussuccess: 'Update was successful'});
+	});
+});
+
+//post search.
+router.post('/searchproduct', function(req, res, next) {
+	var product_id = req.body.product_id;
+	
+	db.query( 'SELECT * FROM products WHERE product_id = ?', [product_id], function ( err, results, fields ){
+		if(err) throw err;
+		var product = results;
+		res.render('upload', {title: 'ADMIN CORNER', searchresults: product});
+	});
+});
+
+
 //post add new category never existed.
 router.post('/newcat', function(req, res, next) {
 	var category = req.body.category;
@@ -136,7 +158,7 @@ router.post('/addcategory',  function(req, res, next) {
 	console.log( req.body );
 	db.query( 'SELECT category_name FROM category WHERE category_name  = ?', [parent], function ( err, results, fields ){
 	console.log( results )
-		if ( results.length === 0 ){
+		if ( results.length > 0 ){
 			var error = 'This category exists already';
 			res.render( 'upload', {title: 'ADD CATEGORY FAILED', childerror: error});
 		}else{
@@ -151,11 +173,6 @@ router.post('/addcategory',  function(req, res, next) {
 
 
 router.post('/upload', function(req, res, next) {
-	var img = req.body.img;
-	var category = req.body.category;
-	var price = req.body.price;
-	var description = req.body.description;
-	var product = req.body.product;
 	//var category = req.body.category;
 	if (req.url == '/upload' && req.method.toLowerCase() == 'post') {
 		// parse a file upload
@@ -163,29 +180,37 @@ router.post('/upload', function(req, res, next) {
 		form.uploadDir = '/Users/STAIN/desktop/sites//obionyi/public/images/samples';
 		form.maxFileSize = 2 * 1024 * 1024;
 		form.parse(req, function(err, fields, files) {
-		var getfiles = JSON.stringify( files );
-		var file = JSON.parse( getfiles );
-		var oldpath = file.path;
-		var name = file.name;
-		form.keepExtensions = true;
-		var newpath = '/Users/STAIN/desktop/sites/obionyi/images/samples/' + file.name;
-		form.on('fileBegin', function( name, file){
-			//rename the file
-			fs.rename(oldpath, newpath, function(err){
-				if (err) throw err;
-				console.log('file renamed');
-			});
-			//secure pin for code
-			securePin.generatePin(10, function(pin){
-			//save in the database.
-				db.query('INSERT INTO products (img,category_name, price, product_|id, description, product_name, status) VALUES (?, ?, ?, ?, ?, ?)', [img, category, price, pin, description, product, 'in stock'], function(err,results, fields){
-					if (err)  throw err;
-					res.render('upload', {title: 'ADMIN CORNER', uploadsuccess: 'file uoladed'});
+			//var img = fields.img; 
+			var category = fields.category;
+			var price = fields.price;
+			var description = fields.description;
+			var product = fields.product;
+			console.log(fields);
+			var getfiles = JSON.stringify( files );
+			var file = JSON.parse( getfiles );
+			var oldpath = file.img.path;
+			//console.log(oldpath, typeof oldpath, typeof file, file.path, typeof file.path);
+			var name = file.img.name;
+			form.keepExtensions = true;
+			var newpath = '/Users/STAIN/desktop/sites/obionyi/public/images/samples/' + name;
+			var img = '/images/samples' + name;
+			form.on('fileBegin', function( name, file){
+				//rename the file
+				fs.rename(oldpath, newpath, function(err){
+					if (err) throw err;
+					//console.log('file renamed');
+				});
+				//secure pin for code
+				securePin.generatePin(10, function(pin){
+				//save in the database.
+					db.query('INSERT INTO products (image, category, price, product_id, description, product_name, status) VALUES (?, ?, ?, ?, ?, ?, ?)', [img, category, price, pin, description, product, 'in stock'], function(err,results, fields){
+						if (err)  throw err;
+						res.render('upload', {title: 'ADMIN CORNER', uploadsuccess: 'file upladed'});
+					});
 				});
 			});
-		});
-		file.emit('fileBegin', name, file);
-    });
+			form.emit('fileBegin', name, file);
+	    });
 	}
 });
 

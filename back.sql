@@ -1,6 +1,6 @@
 CREATE TABLE `products` (
 	`id` INT(11) PRIMARY KEY AUTO_INCREMENT NOT NULL,
-	`product_id` INT(11) NOT NULL,
+	`product_id` BIGINT NOT NULL,
 	`category` VARCHAR(255)NOT NULL,
 	`description` TEXT NOT NULL,
 	`price` INT(11) NOT NULL,
@@ -9,7 +9,7 @@ CREATE TABLE `products` (
 	`date_entered` DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	`product_name` VARCHAR(255) NOT NULL,
 	`status` VARCHAR(255) NOT NULL,
-	`discount` INT(11) NOT NULL
+	`discount` INT(11)  NULL
 );
 
 CREATE TABLE `user`( user_id INT( 11 ) PRIMARY KEY AUTO_INCREMENT NOT NULL,  username varchar( 255 ) UNIQUE NOT NULL, full_name varchar ( 255 ) NOT NULL, email varchar ( 255 ) UNIQUE NOT NULL, phone VARCHAR(255) NOT NULL, code INT( 11 ) NOT NULL, password varchar( 255 ) NOT NULL, date_registered DATETIME  DEFAULT CURRENT_TIMESTAMP)	;
