@@ -1,20 +1,21 @@
-<div class = "container-fluid text-center text-danger">
+<div class = "container-fluid text-center text-white bg bg-secondary">
 <section class = "container">
-<h3 class = "h3"><b>ADD CATEGORIES</b></h3>
-</section><hr>
+<hr>
+<h3 class = "h3" id = "h3"><b>ADD CATEGORIES</b></h3><hr>
+</section>
 </div>
 <div class = "container-fluid">
 <div class = "row">
 <div class = "col-md-6">
-<h5 class = "h5">ADD NEW PARENT CATEGORY</h5>
-	<form method ="POST" action ="/newcat">
+<h5 class = "h5"><b>ADD NEW PARENT CATEGORY</b></h5>
+	<form method ="POST"  action ="/newcat">
 		<div class="container-fluid"> 	
 			<div class="form-group">
 				<label for="category">Category</label>
 				<input type="text" class="form-control" id="newcat" name ="category" placeholder="Enter new category here" required />
 			</div><br>
 			<div class="form-group">
-				<button type="submit" class="btn btn-primary">Submit</button><br><br>
+				<button type="submit" class="btn btn-danger">Submit</button><br><br>
 			</div>
 		</div>
 	</form>
@@ -22,7 +23,7 @@
 </div>
 <div></div>
 <div class = "col-md-6">
-<h5 class = "h5">ADD NEW CHILD CATEGORY</h5>
+<h5 class = "h5"><b>ADD NEW CHILD CATEGORY</b></h5>
 <form method ="POST" action ="/addcategory">
 		<div class="container-fluid">
 		<div class = "row">
@@ -32,9 +33,11 @@
 		</div>
 		<div class="form-group">
 				<select class = "form-control" name = "parent">
-					<option>gfgyjgkjhkhkjhjlhkj<option>
-					{{#if parent}}
-						<option>{{parent}}</option>
+					<option><option>
+					{{#if category}}
+					{{#each category}}
+						<option>{{category_name}}</option>
+						{{/each}}
 					{{/if}}
 				</select>
 		</div>
@@ -51,7 +54,7 @@
 			</div>
 			</div>
 			<div class="form-group">
-				<button type="submit" class="btn btn-primary">Submit</button><br><br>
+				<button type="submit" class="btn btn-danger">Submit</button><br><br>
 			</div>
 		</div>
 		</div>
@@ -65,59 +68,81 @@
 
 <!-- end of first row-->
 </div>
-	
-	
-	<h3>ADD NEW PRODUCT</h3>
-	<form method ="POST" action ="/upload">
+ <div class = "container text-white bg bg-danger">
+ <hr>
+	<h3 class = "h3"><b>ADD NEW PRODUCT<b></h3><hr>
+	</div>
+	<form method ="POST" id = "uploadproduct" enctype="multipart/form-data" action ="/upload">
 		<div class="container-fluid"> 	
-			<div class="form-group">
+		<div class = "form-row">
+			<div class="form-group col-md-6">
 				<label for="category">Category</label>
-				<select name = "parent">
+				<select class = "form-control" name = "category">
 					<option></option>
-					{{#if parent}}
-						<option>{{parent}}</option>
+					{{#if category}}
+					{{#each category}}
+						<option>{{category_name}}</option>
+						{{/each}}
 					{{/if}}
 				</select>
 			</div>
-			<div class="form-group">
+			<div class="form-group col-md-6">
 				<label for="product">Product</label>
 				<input type="text" class="form-control" id="product" name ="product" placeholder="Enter product here" required />
 			</div>
-			<div class="form-group">
-				<label for="img">Price</label>
-				<input type="text" class="form-control" id="Picture" name ="price" value="Contact for price" required />
 			</div>
-			<div class="form-group">
+			<div class = "form-row">
+			<div class="form-group col-md-6">
+				<label for="price">Price</label>
+				<input type="text" class="form-control" id="price" name ="price" value="Contact for price" required />
+			</div>
+			<div class="form-group col-md-6">
+			<div id = "pic"></div>
 				<label for="img">Product Image</label>
-				<input type="file" class="form-control" id="Picture" name ="img" placeholder="Click here" required />
+				<input type="file" class="form-control-file" id="Picture" name ="img" placeholder="Click here" required />
+				</div><br>
+	<div id = "fileerror" class = "alert alert-danger"></div> <div class = "alert alert-info" id = "progress"></div>
+		</div>
+		<!--
+		<div class = "form-group">
+		<img src = "" class = "img-fluid" id ="imagepic">
+		</div>						-->
+			<div class="form-group">
+				<label for="description">Product Description</label>
+				<textarea class="form-control" id="description" rows = "6" name ="description" placeholder="Enter description here"></textarea>
 			</div>
 			<div class="form-group">
-				<label for="img">Product Description</label>
-				<textarea class="form-control" id="description" name ="description" placeholder="Enter description here"></textarea>
+				<button type="submit" class="btn btn-secondary">Submit</button>
+				<span id = "status"></status>
+				<br><br>
 			</div>
-			<div class="form-group">
-				<button type="submit" class="btn btn-primary">Submit</button><br><br>
-			</div>
-		</div><hr>
+		</div>
 		</form>
-		<br>
-		<br>
-		<h3>UPDATE PRODUCT STATUS</h3>
-	<form method ="POST" action ="/newcat">
+		<div class = "row">
+		<div class = "col-md-6">
+		<div class = "container text-white bg bg-danger text-center">
+		<hr>
+		<h3><b>UPDATE PRODUCT STATUS</b></h3><hr>
+		</div>
+		<form method ="POST" action ="/status">
 		<div class="container-fluid"> 	
 			<div class="form-group">
 				<label for="product">Product_id</label>
 				<input type="number" class="form-control" id="product_id" name ="product_id" placeholder="Enter product_id" required />
 			</div>
 			<div class="form-group">
-				<button type="submit" class="btn btn-primary">Submit</button><br><br>
-			</div>
-		</div><hr>
+				<button type="submit" class="btn btn-secondary">Submit</button>
+				</div>
+		</div>
 	</form>
-	
-	<br>
-	<br>
-	<h3>SEARCH PRODUCT</h3>
+		</div>
+		<div class = "col-md-6">
+		<div class = "container text-white
+	 bg bg-secondary text-center">
+		<hr>
+		<h3 class = "h3"><b>SEARCH PRODUCT</b></h3><hr>
+		</div>
+		
 	<form method ="POST" action ="/searchproduct">
 		<div class="container-fluid"> 	
 			<div class="form-group">
@@ -125,8 +150,11 @@
 				<input type="number" class="form-control" id="product_id" name ="product_id" placeholder="Enter product_id" required />
 			</div>
 			<div class="form-group">
-				<button type="submit" class="btn btn-primary">Submit</button><br><br>
+				<button type="submit" class="btn btn-danger">Submit</button><br><br>
 			</div>
-		</div><hr>	
+		</div>	
 	
 	</form>
+		</div>
+		</div>
+			

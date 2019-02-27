@@ -1,4 +1,3 @@
-
 {{#if errors}}
   {{#each errors}}
   <div class="alert alert-danger">
@@ -17,10 +16,12 @@
     {{success}}
   </div>
   {{/if}}
-  
-    <div class="container"> 
-        <h4 style="text-align: center">{{title}}</h4><hr style="size: 50% color:navy"><br>
- 
+  <div class = "container">
+    <div class="bg bg-danger text-white text-center"> 
+    <hr>
+        <b><h4 class = "h4 text-center text-white">{{title}}</b></h4>
+        <hr>
+ </div>
 <form method ="POST" action ="/register">
 
       
@@ -66,7 +67,8 @@ id="Pass2" name ="pass2" value="{{cpass}}"  placeholder="Password" required />
 		
 	   
    <div class="form-group">
-  <button type="submit" id="registerbutton" class="btn btn-primary">Register</button>
+  <button type="submit" id="registerbutton" class="btn btn-block btn-secondary">Register</button>
  </div>
 </form>
+</div>
 </div>

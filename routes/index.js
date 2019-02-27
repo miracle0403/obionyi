@@ -3,7 +3,7 @@ const nodemailer = require('nodemailer');
 var formidable = require('formidable');
 var express = require('express');
 var router = express.Router();
-var ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn
+var ensureLoggedIn =  require('connect-ensure-login').ensureLoggedIn
 var util = require('util');
 var securePin = require('secure-pin');
 var fs = require('fs');
@@ -12,40 +12,53 @@ var db = require('../db.js');
 var bcrypt = require('bcrypt-nodejs');
 var path = require('path');
 var url = require('url'); 
+var math = require( 'mathjs' );
+var formevents = require( '../functions/forms.js' );
+//var routeValidator = require( 'express-route-validator' );
 
 
 //get home 
 router.get('/',  function(req, res, next) {
-	res.redirect('/pages/1');
+	res.redirect('/page=1');
 });
 
 /* GET home page. */
-router.get('/pages/:page',  function(req, res, next) {
-	var currentPage = req.params.page;
-	db.query('SELECT COUNT(product_id) AS total FROM products', function(err, results, fields){
-        if (err) next(err);
-		var TotalNoOfROWS = results[0].total;
-		var sql = "SELECT * FROM products ORDER BY product_id";
-		db.query(sql, function(err, results, fields) {
-			if (err) next(err);
-			var products = results;
-			res.render('index', { 
-				products: products,
-				pagination: { 
-					page: currentPage, limit:5 ,totalRows: TotalNoOfROWS 
-				}
+router.get('/page=:page', function ( req, res, next ){
+	var limit  =  1;
+	var page = req.params.page;
+	db.query( 'SELECT COUNT( product_id) AS total FROM products WHERE status  = ?',  ['in stock'], function(err, results, fields){
+		if( err ) throw err;
+		var totalrows = results[0].total;
+		var pages = math.ceil( totalrows / limit ); 
+		if( pages === 1 ){
+			var offset = 0;
+			var sql = 'SELECT * FROM products WHERE status  =  ?  LIMIT ?, ?';
+			var details =  ['in stock', offset, limit];
+			db.query(sql, details, function ( err, results, fields ){
+				if( err ) throw err;
+				var products = results;
+				//var links = ['/pages/1'];
+				res.render( 'index', {title: 'IFEY SAMUEL', products: products, pagination: { page: page, pageCount: pages }});
 			});
-		});
+		}else{
+			var offset = ( page * limit ) - limit;
+			var sql = 'SELECT * FROM products WHERE status  =  ?  LIMIT ?, ?';
+			var details =  ['in stock', offset, limit];
+			db.query(sql, details, function ( err, results, fields ){
+				if( err ) throw err;
+				var products = results;
+				res.render( 'index', {title: 'IFEY SAMUEL', products: products, pagination: { page: page, pageCount: pages }});
+			});
+		}
 	});
 });
-
 
 
 //ensureLoggedIn( '/login' ),
 //get upload
 router.get('/admin',  function(req, res, next) {
 	//get the category.
-	db.query('SELECT category FROM category', function(err, results, fields){
+	db.query('SELECT category_name FROM category', function(err, results, fields){
 		if(err) throw err;
 		var category = results;
 		res.render('upload', {title: 'ADMIN CORNER', category: category});
@@ -92,11 +105,19 @@ passport.deserializeUser(function(user_id, done){
 //post add new category never existed.
 router.post('/newcat', function(req, res, next) {
 	var category = req.body.category;
-	db.query('CALL newcat (?)', [category], function(err, results, fields){
-		if (err) throw err;
-		var parent = 'Category added.';
-		var success = 'added successfully';
-		res.render('status', { title: 'IFEYSAMUEL VENTURES', parent: success});
+	db.query( 'SELECT category_name FROM category WHERE category_name  = ?', [category], function ( err, results, fields ){
+	console.log( results )
+		if ( results.length === 0 ){
+			var error = 'This category exists already';
+			res.render( 'upload', {title: 'ADD CATEGORY FAILED', parenterror: error});
+		}else{
+			db.query('CALL newcat (?)', [category], function(err, results, fields){
+				if (err) throw err;
+				var parent = 'Category added.';
+				var success = ' New category added successfully';
+				res.render('upload', { title: 'IFEYSAMUEL VENTURES', parent: success});
+			});
+		}
 	});
 });
 
@@ -108,83 +129,50 @@ router.post('/login', passport.authenticate('local', {
 }));
 
 //post add category 
-router.post('/addcategory', function(req, res, next) {
+router.post('/addcategory',  function(req, res, next) {
 	var category = req.body.category;
-	var child = req.body.parent;
-	db.query('CALL addcategory (?, ?)', [parent, category], function(err, results, fields){
-		if (err) throw err;
-		var success = 'Category added.';
-		res.render('index', { title: 'IFEYSAMUEL VENTURES', parent: success});
+	var parent = req.body.parent;
+	console.log( req.body );
+	db.query( 'SELECT category_name FROM category WHERE category_name  = ?', [parent], function ( err, results, fields ){
+	console.log( results )
+		if ( results.length === 0 ){
+			var error = 'This category exists already';
+			res.render( 'upload', {title: 'ADD CATEGORY FAILED', childerror: error});
+		}else{
+			db.query('CALL addnewcategory (?, ?)', [parent, category], function(err, results, fields){
+				if (err) throw err;
+				var success = 'Category added.';
+				res.render('upload', { title: 'IFEYSAMUEL VENTURES', childsuccess: success});
+			});		
+		}
 	});
 });
 
 
 router.post('/upload', function(req, res, next) {
 	var img = req.body.img;
+	var pic = req.body.picture;
 	var category = req.body.category;
 	var price = req.body.price;
-	var category = req.body.description;
+	var description = req.body.description;
+	var product = req.body.product;
 	//var category = req.body.category;
 	if (req.url == '/upload' && req.method.toLowerCase() == 'post') {
 		// parse a file upload
 		var form = new formidable.IncomingForm();
-		form.parse(req, function(err, fields, files) {
-			if (err) throw err;
-					var filed =  JSON.stringify(files.img);
-					var file  =  JSON.parse( filed );
-					var name  =  file.name;
-					console.log( file );
-					form.on('fileBegin', function(name, file) {
-						var newpath =  '/Users/STAIN/desktop/sites/obionyi/public/images/samples/' + file.name;
-						var oldpath  =  file.path;
-						var type  =  file.type;
-						var size  =  file.size;
-						var oldfile  =  path.basename(oldpath);
-						//console.log(newfile + 'is the new file');
-						//change the file name
-						console.log(newpath);
-						//if the type is not supported.
-						var supported  =  {
-							png: 'image/png',
-							jpg: 'image/jpg',
-							jpeg: 'image/jpeg'
-						}
-						if( type  == supported.png || type == supported.jpg || type == supported.jpeg){
-							//console.log( 'file is supported', typeof supported.jpeg, typeof type, supported.jpeg === type, supported.jpeg == type);
-							//check the size
-							if( size > 3000000 ){
-								var error = 'This file is too big. the maximum file size is 3mb.'
-								//console.log( 'file too big' )
-								//delete the file
-								fs.unlink('oldpath', function(err){
-									if(err) throw err;
-									res.render('upload', {title: 'FILE UPLOAD FAILED', error: error});
-								});
-							}else{
-								
-								// move the file.
-								fs.rename(oldpath, newpath, function( err ){
-									if( err ) throw err;
-									console.log( 'file moved' );
-									securePin.generatePin(10, function(pin){
-										//insert joor
-										var product_id = pin;
-										db.query('INSERT INTO products (price, category, product_name, image, product_id, status) values (?, ?, ?, ?, ?, ?)', [price, category, product, newpath, product_id, 'instock'], function(err, results, fields){
-											if (err) throw err;
-											var success = 'Product added successfully';
-											res.render('upload', {title: 'FILE UPLOAD SUCCESSFUL', success: success});
-										});
-									});
-								});
-							}
-						}else{
-							//console.log( 'is not supported' );
-							var error = 'This file is not supported. Use a jpg or png or jpeg file.';
-							res.render('upload', {title: 'FILE UPLOAD FAILED', error: error});
-						}
-					});
-					form.emit( 'fileBegin', name, file );
+		form.uploadDir = '/storage/emulated/0/obionyi/public/images/samples';
+		form.maxFileSize = 2 * 1024 * 1024;
+		form.parse(req, function(err, fields, files) {
+		var getfiles = JSON.stringify( files );
+		var file = JSON.parse( getfiles );
+		var oldpath = file.path;
+		var name = file.name;
+		form.keepExtensions = true;
+		var newpath = '/storage/emulated/0/obionyi/images/samples/' + file.name;
+		form.on('fileBegin', function( name, file){
+			//rename the file
 		});
+    });
 	}
 });
 
@@ -250,5 +238,7 @@ router.post('/register', function (req, res, next) {
 router.get('/404', function(req, res, next) {
   res.render('404', {title: 'PAGE NOT FOUND', message: 'Ooops  since you got lost somehow but i am here to catch you. see our quick links.'});
 });
-
+router.get( '*', function ( req, res, next ){
+	res.redirect( '/404' )
+});
 module.exports = router;

@@ -6,6 +6,7 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 //var env  = require('dotenv').config();
 var hbs = require('express-handlebars');
+//var paginate = require('handlebars-paginate');
 //const path = require('path');
 var fs = require('fs');
 
@@ -29,7 +30,7 @@ var db = require('./db.js');
 var hbs  = require('hbs');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
-var paginate = require('express-handlebars-paginate');
+//var paginate = require('express-handlebars-paginate');
 var app = express();
 
  //view set up
@@ -37,10 +38,7 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'hbs');
 
 //create helper
-hbs.registerHelper('paginate', paginate);
-
-
-
+hbs.registerHelper('paginate', require('handlebars-paginate'));
 //register partials
 
 var mainseoTemplate = fs.readFileSync(__dirname + '/views/mainseo.hbs', 'utf8');
